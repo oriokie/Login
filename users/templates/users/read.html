@@ -1,0 +1,36 @@
+{% extends "users/base.html" %} {% block title %}Reconciliation Page{% endblock title %} {% block content %}
+
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+
+  form input[type="file"] {
+    padding: 10px;
+    margin: 20px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+  }
+
+  form button[type="submit"] {
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+<div><h3>Test</h3></div>
+<div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %} {{ form.as_p }}
+
+    <button type="submit">Reconcile</button>
+  </form>
+</div>
+
+{% endblock content %}
