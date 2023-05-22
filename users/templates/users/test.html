@@ -1,4 +1,4 @@
-{% extends "users/base.html" %} {% block title %}Reconciliation Page{% endblock %} {% block content %}
+{% extends "users/base.html" %} {% block title %}Statement Page{% endblock %} {% block content %}
 
 <style>
   .form-container {
@@ -22,7 +22,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
-  .form-container button[type="submit"] {
+  .form-container button {
     padding: 10px 20px;
     background-color: #4caf50;
     color: white;
@@ -33,20 +33,10 @@
     transition: background-color 0.3s ease;
   }
 
-  .form-container button[type="submit"]:hover {
+  .form-container button:hover {
     background-color: #45a049;
   }
 </style>
-
-<div class="form-container">
-  <div>
-    <form method="post" enctype="multipart/form-data" action="{% url 'read' %}">
-      {% csrf_token %} {{ form.as_p }}
-      <button type="submit">Reconcile</button>
-    </form>
-  </div>
-</div>
-
 <div class="form-container">
   <form method="post" action="{% url 'my_view' %}">
     {% csrf_token %}
@@ -54,6 +44,7 @@
   </form>
 </div>
 </div>
+
 
 
 {% endblock %}

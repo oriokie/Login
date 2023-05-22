@@ -5,30 +5,25 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views import View
 from django.contrib.auth.decorators import login_required
-
 from .forms import RegisterForm, LoginForm, UpdateUserForm, UpdateProfileForm
-
-
-def home(request):
-    return render(request, 'users/home.html')
 
 
 class RegisterView(View):
     form_class = RegisterForm
-    initial = {'key': 'value'}
-    template_name = 'users/register.html'
+    initial = {"key": "value"}
+    template_name = "users/register.html"
 
     def dispatch(self, request, *args, **kwargs):
         # will redirect to the home page if a user tries to access the register page while logged in
         if request.user.is_authenticated:
-            return redirect(to='/')
+            return redirect(to="/")
 
         # else process dispatch as it otherwise normally would
         return super(RegisterView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -36,12 +31,12 @@ class RegisterView(View):
         if form.is_valid():
             form.save()
 
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}')
+            username = form.cleaned_data.get("username")
+            messages.success(request, f"Account created for {username}")
 
-            return redirect(to='login')
+            return redirect(to="login")
 
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {"form": form})
 
 
 # Class based view that extends from the built in login view to add a remember me functionality
@@ -49,7 +44,7 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
 
     def form_valid(self, form):
-        remember_me = form.cleaned_data.get('remember_me')
+        remember_me = form.cleaned_data.get("remember_me")
 
         if not remember_me:
             # set session expiry to 0 seconds. So it will automatically close the session after the browser is closed.
@@ -63,40 +58,46 @@ class CustomLoginView(LoginView):
 
 
 class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
-    template_name = 'users/password_reset.html'
-    email_template_name = 'users/password_reset_email.html'
-    subject_template_name = 'users/password_reset_subject'
-    success_message = "We've emailed you instructions for setting your password, " \
-                      "if an account exists with the email you entered. You should receive them shortly." \
-                      " If you don't receive an email, " \
-                      "please make sure you've entered the address you registered with, and check your spam folder."
-    success_url = reverse_lazy('users-home')
+    template_name = "users/password_reset.html"
+    email_template_name = "users/password_reset_email.html"
+    subject_template_name = "users/password_reset_subject"
+    success_message = (
+        "We've emailed you instructions for setting your password, "
+        "if an account exists with the email you entered. You should receive them shortly."
+        " If you don't receive an email, "
+        "please make sure you've entered the address you registered with, and check your spam folder."
+    )
+    success_url = reverse_lazy("users-home")
 
 
 class ChangePasswordView(SuccessMessageMixin, PasswordChangeView):
-    template_name = 'users/change_password.html'
+    template_name = "users/change_password.html"
     success_message = "Successfully Changed Your Password"
-    success_url = reverse_lazy('users-home')
+    success_url = reverse_lazy("users-home")
 
 
 @login_required
 def profile(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         user_form = UpdateUserForm(request.POST, instance=request.user)
-        profile_form = UpdateProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        profile_form = UpdateProfileForm(
+            request.POST, request.FILES, instance=request.user.profile
+        )
 
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
-            messages.success(request, 'Your profile is updated successfully')
-            return redirect(to='users-profile')
+            messages.success(request, "Your profile is updated successfully")
+            return redirect(to="users-profile")
     else:
         user_form = UpdateUserForm(instance=request.user)
         profile_form = UpdateProfileForm(instance=request.user.profile)
 
-    return render(request, 'users/profile.html', {'user_form': user_form, 'profile_form': profile_form})
-
-
+    return render(
+        request,
+        "users/profile.html",
+        {"user_form": user_form, "profile_form": profile_form},
+    )
 
 
 from django.shortcuts import render
@@ -108,10 +109,11 @@ from django.template import RequestContext
 from django.http import HttpResponse
 import pandas as pd
 import sys
-from .forms import FileForm
+from .forms import FileForm, StatForm
 from .models import File
 from django.contrib import messages
 from django.shortcuts import render, redirect
+import requests, random
 
 
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -120,6 +122,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 class NewTaskForm(forms.Form):
     task = forms.CharField(label="New Task Name")
     priority = forms.IntegerField(label="Priority", min_value=1, max_value=4)
+
 
 def upload_file(request):
     if request.method == "POST":
@@ -130,6 +133,7 @@ def upload_file(request):
     else:
         form = FileForm()
     return render(request, "upload.html", {"form": form})
+
 
 @login_required
 def read(request):
@@ -336,3 +340,154 @@ def read(request):
     return render(request, "users/read.html", {"form": form, "process_complete": False})
 
 
+quotes = [
+    "The harder I work, the luckier I get. - Samuel Goldwyn",
+    "Success is no accident. It is hard work, perseverance, learning, studying, sacrifice, and most of all, love of what you are doing. - Pelé",
+    "There are no shortcuts to any place worth going. - Beverly Sills",
+    "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+    "The only place where success comes before work is in the dictionary. - Vidal Sassoon",
+    "Dreams don't work unless you do. - John C. Maxwell",
+    "Success is the sum of small efforts, repeated day in and day out. - Robert Collier",
+    "The only limit to our realization of tomorrow will be our doubts of today. - Franklin D. Roosevelt",
+    "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+    "Hard work beats talent when talent doesn't work hard. - Tim Notke",
+    "Believe you can, and you're halfway there. - Theodore Roosevelt",
+    "The harder the conflict, the greater the triumph. - George Washington",
+    "Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful. - Albert Schweitzer",
+    "Success usually comes to those who are too busy to be looking for it. - Henry David Thoreau",
+    "The difference between ordinary and extraordinary is that little extra. - Jimmy Johnson",
+    "The only way to do great work is to love what you do. - Steve Jobs",
+    "The future depends on what you do today. - Mahatma Gandhi",
+    "Success is the result of perfection, hard work, learning from failure, loyalty, and persistence. - Colin Powell",
+    "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+    "The secret to success is to know something nobody else knows. - Aristotle Onassis",
+]
+
+
+def home(request):
+    quote = random.choice(quotes)
+    context = {"quote": quote}
+    return render(request, "users/home.html", context)
+
+
+@login_required
+def stat(request):
+    if request.method == "POST":
+        form = StatForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+
+            # Get the uploaded file
+            statement = "media/STATEMENT"
+            pstatement = "media/PSTATE"
+
+            sdf = pd.read_fwf(
+                statement, header=None, widths=[13, 20, 15, 9, 32, 16], index=False
+            )
+            sortdf = sdf.sort_values(0)
+            df = sortdf.loc[sortdf[5].isin(["KES1020000010001"])]
+            df.loc[df[4].str.endswith("-"), 4] = "-" + df.loc[
+                df[4].str.endswith("-"), 4
+            ].str.strip("- ")
+            pd.to_numeric([4])
+
+            cleandf = df[[1, 2, 4]]
+            cleandf.columns = ["NARRATION", "FT", "AMOUNT"]
+
+            cleandf["AMOUNT"] = cleandf["AMOUNT"].str.replace(",", "").astype(float)
+
+            cleandf = cleandf.sort_values(["AMOUNT"])
+
+            psdf = pd.read_fwf(
+                pstatement, header=None, widths=[13, 20, 15, 9, 32, 16], index=False
+            )
+            sortpdf = psdf.sort_values(0)
+            val = sortpdf.loc[(sortpdf[1] == "BALANCE AT PERIOD EN"), 4].iloc[0]
+            dfp = sortpdf.loc[sortpdf[5].isin(["KES1020000010001"])]
+            dfp.loc[dfp[4].str.endswith("-"), 4] = "-" + dfp.loc[
+                dfp[4].str.endswith("-"), 4
+            ].str.strip("- ")
+            pd.to_numeric([4])
+
+            cleanpdf = dfp[[1, 2, 4]]
+            cleanpdf.columns = ["NARRATION", "FT", "AMOUNT"]
+
+            cleanpdf["AMOUNT"] = cleanpdf["AMOUNT"].str.replace(",", "").astype(float)
+
+            cleanpdf = cleanpdf.sort_values(["AMOUNT"])
+
+            postivesumd = cleanpdf[cleanpdf["AMOUNT"] > 0]["AMOUNT"].sum()
+            negativesumd = cleanpdf[cleanpdf["AMOUNT"] < 0]["AMOUNT"].sum()
+
+            left_join = pd.merge(cleanpdf, cleandf, on="FT", how="left")
+
+            T24Ep = left_join[(~left_join["AMOUNT_y"].notnull())]
+
+            summarydata = [
+                ["TOTAL STATEMENT CREDITS", postivesumd],
+                ["TOTAL STATEMENT DEBITS", negativesumd],
+                ["BALANCE AT THE END", val],
+            ]
+            summarypdf = pd.DataFrame(summarydata, columns=["DESCRIPTION", "AMOUNT"])
+
+            output_path_stat = "./Stat.xlsx"
+
+            with pd.ExcelWriter(output_path_stat) as writer:
+                T24Ep.to_excel(writer, sheet_name="T24 Exceptions", index=False)
+                print("Created T24 Exceptions")
+                summarypdf.to_excel(writer, sheet_name="Summary", index=False)
+                print("Created the Summary Sheet")
+
+            html = render(request, "users/stat.html")
+            response = HttpResponse(content_type="text/html")
+            response.write(html)
+
+            # Add the binary file to the response
+            with open("Stat.xlsx", "rb") as f:
+                response.content = f.read()
+                response["Content-Disposition"] = 'attachment; filename="Stat.xlsx"'
+
+                return response
+
+    else:
+        form = StatForm()
+
+    return render(request, "users/stat.html", {"form": form, "process_complete": False})
+
+
+from django.http import JsonResponse
+
+
+def my_view(request):
+    efts = "media/EFT.xls"
+
+    eftdf = pd.read_excel(efts, index_col=False, dtype="str")
+    eftdf["CUSTACCOUNT"] = eftdf["CUSTACCOUNT"].map(str)
+    eftdf["DESTACCOUNT"] = eftdf["DESTACCOUNT"].map(str)
+    clearedefts = eftdf[
+        [
+            "CUSTACCOUNT",
+            "CUSTNAME",
+            "DESTBANK",
+            "DESTBRANCH",
+            "DESTACCOUNT",
+            "DESTACCTITLE",
+            "TRNREF",
+            "AMOUNT",
+            "VALUEDATE",
+            "REMARKS",
+            "ENDTOENDID",
+        ]
+    ]
+    clearedefts.to_excel("./Cleared_EFTs.xlsx", sheet_name="CLEARED EFTS", index=False)
+
+    html = render(request, "users/test.html")
+    response = HttpResponse(content_type="text/html")
+    response.write(html)
+
+    # Add the binary file to the response
+    with open("Cleared_EFTs.xlsx", "rb") as f:
+        response.content = f.read()
+        response["Content-Disposition"] = 'attachment; filename="Cleared_EFTs.xlsx"'
+
+    return response

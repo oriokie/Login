@@ -36,6 +36,7 @@
               <div class="navbar-nav ml-auto">
                 {% if user.is_authenticated %}
                 <a href="{% url 'read' %}" class="nav-item nav-link">Reconcile</a>
+                <a href="{% url 'stat' %}" class="nav-item nav-link">Exceptions</a>
                 <a href="{% url 'users-profile' %}" class="nav-item nav-link">Profile</a>
                 <a href="{% url 'logout' %}" class="nav-item nav-link">Logout</a>
                 {% else %}
